@@ -10,7 +10,9 @@ Top priority:
 * TODO Check if the library is UTF-8 compatible
 ** Hard byte length limit of some strings cuts UTF-8 chars?
 ** The only source of UTF-8/wide chars is the input?
-*** => output them as is, but don't mess them
+*** option a: transparency: output them as is, but don't mess them
+Wide chars hopelessly "opaque"?
+*** option b: transform input to/accept only UTF-8, output only UTF-8
 
 * TODO Refactorisation: replacing a lot of copy-paste code with these
 ** nip_variable_union(), 
