@@ -3,6 +3,8 @@
 Top priority:
 
 * TODO Make it a library
+** TODO a single header file instead of nip*.h
+** TODO consider ABI vs. future development
 ** DONE makefile rules for static
 ** DONE makefile rules for a shared library
 ** TODO GNU libtool or Automake for portability???
@@ -11,7 +13,6 @@ Top priority:
 ** Hard byte length limit of some strings cuts UTF-8 chars?
 ** The only source of UTF-8/wide chars is the input?
 *** option a: transparency: output them as is, but don't mess them
-Wide chars hopelessly "opaque"?
 *** option b: transform input to/accept only UTF-8, output only UTF-8
 
 * TODO Refactorisation: replacing a lot of copy-paste code with these
@@ -215,7 +216,7 @@ Wide chars hopelessly "opaque"?
 ** typedef enum nip_error_code_enum { NO_ERROR = 0, ...} nip_error_code;
 ** use nip_error_code instead of int
 
-* DONE Consistent conventions in naming functions, variables, and data structures?
+* TODO Consistent conventions in naming functions, variables, and data structures?
 ** DONE make the naming conventions uniform, e.g. state_names instead of statenames or stateNames
 ** DONE prefix everything with "nip" to simulate namespace
 ** DONE errorhandler.h -> niperrorhandler.h
@@ -227,7 +228,7 @@ Wide chars hopelessly "opaque"?
 ** DONE Heap.h -> nipheap.h
 ** DONE Graph.h -> nipgraph.h
 ** DONE parser.h -> nipparsers.h ?
-** TODO nip.h ok?
+** TODO nip.h ok, but needs nip->nip_model etc.
 ** DONE convert -> nipconvert
 ** DONE em_test -> niptrain
 ** DONE gen_test -> nipsample
