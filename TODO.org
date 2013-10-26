@@ -15,6 +15,8 @@ Top priority:
 *** option a: transparency: output them as is, but don't mess them
 *** option b: transform input to/accept only UTF-8, output only UTF-8
 
+* TODO "Plan 9 from belief universe"
+** Does this compile on Plan9?
 * TODO Refactorisation: replacing a lot of copy-paste code with these
 ** nip_variable_union(), 
 ** nip_variable_isect(): search for clique_intersection, and
