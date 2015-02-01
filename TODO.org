@@ -18,6 +18,8 @@ Some parts of the library are likely to change soon
 *** option a: transparency: output them as is, but don't mess them
 *** option b: transform input to/accept only UTF-8, output only UTF-8
 
+* TODO Support for OpenCL in potential.c
+** Divide into suitable chunks if bigger than available alloc?
 * TODO Graphical interactive demos with Tcl/Python/<web tech X here>?
 ** A set of windows with one potential / belief universe each
 ** Click on the marginal inserts evidence for the variable
@@ -78,7 +80,6 @@ Some parts of the library are likely to change soon
 ** TODO write_X() functions could take file id's instead of file names...
 *** opening a file or other output would be users responsibility
 
-* TODO Support for CUDA or OpenCL in potential.c?
 
 
 * TODO clique.c could hide potential.c completely?
