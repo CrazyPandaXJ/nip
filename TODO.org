@@ -18,13 +18,24 @@ Some parts of the library are likely to change soon
 *** option a: transparency: output them as is, but don't mess them
 *** option b: transform input to/accept only UTF-8, output only UTF-8
 
-* TODO ZeroMQ support for distributing join trees over network?
-* TODO Support for OpenCL in potential.c
-** Divide into suitable chunks if bigger than available alloc?
+* TODO Better demo case?
+** CW decoding or some other time series smoothing case?
 * TODO Graphical interactive demos with Tcl/Python/<web tech X here>?
 ** A set of windows with one potential / belief universe each
 ** Click on the marginal inserts evidence for the variable
 ** Click inside the bitmap modifies conditional/prior probs
+
+
+* TODO Online forward_inference (+ refactor offline forward_inference?)
+** Utilize stdin, stdout, and named pipes
+stderr for "interactive" messages, not just errors, only main program
+* TODO Online fixed_lag_smoothing
+** Have more than 1.5 temporal slices?
+** Implement re-use of allocated slices: "tank track" method?
+* TODO Use online forward mode or fixed-lag smoothing with SDR?
+* TODO ZeroMQ support for distributing join trees over network?
+* TODO Support for OpenCL in potential.c
+** Divide into suitable chunks if bigger than available alloc?
 * TODO "Plan 9 from belief universe"
 ** Does this compile on Plan9?
 * TODO Refactorisation: replacing a lot of copy-paste code with these
@@ -154,10 +165,6 @@ Some parts of the library are likely to change soon
 *** nip struct == a set of graphs and their clique trees?
 
 * TODO Get rid of copy-paste stuff in inference procedures... but how?
-
-* TODO Online forward_inference (+ refactor offline forward_inference?)
-
-* TODO Online fixed_lag_smoothing...
 
 * TODO Particle filtering by having a sibling class for potential arrays?
 ** representing distribution as a collection of samples instead of a probability table
