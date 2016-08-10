@@ -18,6 +18,22 @@ Some parts of the library are likely to change soon
 *** option a: transparency: output them as is, but don't mess them
 *** option b: transform input to/accept only UTF-8, output only UTF-8
 
+* TODO Automated test scripts
+** Use Robot Framework from Google?
+** TODO iotest
+** TODO parsertest
+** TODO potentialtest
+** TODO cliquetest
+** TODO graphtest
+** TODO bisontest
+** TODO datafiletest
+** TODO hmmtest
+** TODO htmtest
+** TODO memleaktest
+** TODO models and data for testing nip.c
+** TODO script with simple diff operations? (not for memleaktest)
+
+
 * TODO Better demo case?
 ** CW decoding or some other time series smoothing case?
 * TODO Graphical interactive demos with Tcl/Python/<web tech X here>?
@@ -28,7 +44,8 @@ Some parts of the library are likely to change soon
 
 * TODO Online forward_inference (+ refactor offline forward_inference?)
 ** Utilize stdin, stdout, and named pipes
-stderr for "interactive" messages, not just errors, only main program
+- stderr for "interactive" messages, not just errors
+- I/O only from the main program
 * TODO Online fixed_lag_smoothing
 ** Have more than 1.5 temporal slices?
 ** Implement re-use of allocated slices: "tank track" method?
@@ -64,21 +81,6 @@ stderr for "interactive" messages, not just errors, only main program
 ** each call is represented by an edge (func A calls func B)
 ** static and context-insensitive (the simple case) 
 ** automated script to create DOT (GraphViz): codeviz? Python?
-
-* TODO Automated test scripts
-** Use Robot Framework from Google?
-** TODO iotest
-** TODO parsertest
-** TODO potentialtest
-** TODO cliquetest
-** TODO graphtest
-** TODO bisontest
-** TODO datafiletest
-** TODO hmmtest
-** TODO htmtest
-** TODO memleaktest
-** TODO models and data for testing nip.c
-** TODO script with simple diff operations? (not for memleaktest)
 
 * TODO Refactor nip.c and jointree.c
 ** functions that want collections of all variables and sepsets as parameters
