@@ -44,6 +44,7 @@
 
 /* Hidden: nipgraph.h, nipheap.h, nipstring.h */
 
+/* TODO: consider separating these from NIP core, let users have their own */
 #define TIME_SERIES_LENGTH(ts) ( (ts)->length )
 #define UNCERTAIN_SERIES_LENGTH(ucs) ( (ucs)->length )
 
@@ -53,89 +54,102 @@
 /* "How probable is the impossible" (0 < epsilon << 1) */
 /*#define PARAMETER_EPSILON 0.00001*/
 
+/**
+ * Direction of inference: either forward or backward in time or sequence
+ */
 enum nip_direction_type {BACKWARD, FORWARD};
-typedef enum nip_direction_type nip_direction;
+typedef enum nip_direction_type nip_direction; /// hide enum notation
 
+/**
+ * The data structure containing all necessary stuff for running 
+ * probabilistic inference with a model, except data itself
+ */
 typedef struct{
-  int num_of_cliques;
-  nip_clique *cliques;
-  int num_of_vars;
-  nip_variable *variables;
-  nip_variable *next;     /* An array of the variables that will substitute 
-		       * another one in the next timeslice. */
+  int num_of_cliques;  ///< number of cliques/potentials in the join tree
+  nip_clique *cliques; ///< the actual cliques/potentials
+  int num_of_vars;         ///< number of random variables in the model
+  nip_variable *variables; ///< the actual variables (names of values etc.)
+  
+  nip_variable *next;     /**< The variables that will substitute 
+			     another one in the next timeslice. */
+  nip_variable *previous; /**< The variables that are substituted 
+			     by some variables from the previous timeslice. 
+			     (Waste of memory?) */
+  int num_of_nexts; ///< Number of variables in 'next' and 'previous'
 
-  nip_variable *previous; /* An array of the variables that are substituted 
-		       * by some variables from the previous timeslice. 
-		       * Waste of memory? */
+  int outgoing_interface_size; ///< number of variables in outgoing interface
+  nip_variable* outgoing_interface;          ///< I_{t}->
+  nip_variable* previous_outgoing_interface; ///< I_{t-1}->
+  int incoming_interface_size; ///< number of variables in incoming interface
+  nip_variable* incoming_interface;          ///< I_{t}<-
 
-  int num_of_nexts;   /* Number of variables in the 'next' and 'previous' 
-		       * arrays*/
+  nip_clique in_clique;  /**< The clique which receives the message
+			    from the past timeslices */
 
-  /* Undocumented features: */
-  int outgoing_interface_size;
-  nip_variable* outgoing_interface;          /* I_{t}->   */
-  nip_variable* previous_outgoing_interface; /* I_{t-1}-> */
-  int incoming_interface_size;
-  nip_variable* incoming_interface;          /* I_{t}<-   */
+  nip_clique out_clique; /**< The clique which handles the connection to the 
+			    future timeslices */
 
-  nip_clique in_clique;  /* Reference to the clique which receives
-			  * the message from the past timeslices */
+  nip_variable *children;    ///< all the variables that have parents
+  nip_variable *independent; ///< ...and those who dont. (Redundant?)
+  int num_of_children;       ///< number of children < num_of_vars
 
-  nip_clique out_clique; /* The clique which handles the connection to the 
-			  * timeslices in the future */
-
-  nip_variable *children;    /* All the variables that have parents */
-  nip_variable *independent; /* ...and those who dont. (Redundant?)  */
-  int num_of_children;
-
-  int node_size_x;
-  int node_size_y;
+  int node_size_x; ///< node width, for drawing the graph
+  int node_size_y; ///< node height, for drawing the graph
 }nip_struct;
 
-typedef nip_struct* nip;
+typedef nip_struct* nip; /// hide pointer notation
 
 
+/**
+ * Structure for storing a batch of "crisp" observations
+ */
 typedef struct{
-  nip model;          /* The model (contains the variables and state names) */
-  nip_variable *hidden;   /* An array containing the latent variables */
-  int num_of_hidden;  /* Number of latent variables */
-  nip_variable *observed; /* An array containing the observed variables */
-  int num_of_observed; /* == model->num_of_vars - num_of_hidden */
+  nip model; ///< The model (contains the variables and state names)
+  nip_variable *hidden;   ///< The latent variables
+  int num_of_hidden;      ///< Number of latent variables
+  nip_variable *observed; ///< The observed variables
+  int num_of_observed;    ///< == model->num_of_vars - num_of_hidden
 
-  int length;         /* Number of time steps */
-  int **data;         /* The time series */
-  /* JJ NOTE: Should there be a cache for extremely large time series? */
+  int length; ///< Number of time steps
+  int **data; ///< The time series data
+  /* TODO: Should there be a cache for extremely large time series? */
 }time_series_struct;
 
 typedef time_series_struct* time_series;
 
-/* JJ NOTE: Should there be something else for streams / online inference? */
+/* TODO: Should there be something else for streams / online inference? */
 
+/**
+ * Structure for storing "soft" uncertain observations or inference results
+ */
 typedef struct{
-  nip_variable* variables; /* variables of interest */
-  int num_of_vars;
-  int length;     /* length of the time series */
-  double*** data; /* probability distribution of every variable at every t */
+  nip_variable* variables; ///< variables of interest
+  int num_of_vars;         ///< number of variables
+  int length;              ///< length of the time series or sequence
+  double*** data; ///< probability distribution of every variable at every t
 }uncertain_series_struct;
 
 typedef uncertain_series_struct* uncertain_series;
 
 
-/* Makes the model forget all the given evidence.
+/**
+ * Makes the model forget all the given evidence.
  * NOTE: also the priors specified in the NET file are cleared
  * (but remain intact in the variables) so you'll have to re-enter them
  * as soft evidence. (FIXME: priors should not be treated as evidence!) */
 void reset_model(nip model);
 
 
-/* Makes all the conditional probabilities uniform and forgets all evidence.
+/**
+ * Makes all the conditional probabilities uniform and forgets all evidence.
  * In other words, the model will be as if it was never initialised with 
  * any parameters at all. 
  * (All the variables and the join tree will be there, of course) */
 void total_reset(nip model);
 
 
-/* Enters the priors of independent variables into the model as evidence.
+/**
+ * Enters the priors of independent variables into the model as evidence.
  * (FIXME: priors should not be treated as evidence!)
  * This has to be done after reset_model and parse_model if you have any
  * other kind of priors than uniform ones. If you need to suppress the 
@@ -146,31 +160,52 @@ void total_reset(nip model);
 void use_priors(nip model, int has_history);
 
 
-/* Creates a model according to the net file. 
- * The single parameter is the name of the net file as a string. */
+/**
+ * Creates a model according to a net file. 
+ * Remember to free the model when done with it.
+ * @param file the name of the net file as a string 
+ */
 nip parse_model(char* file);
 
 
-/* Writes the parameters of <model> into Hugin NET file named <filename> */
+/**
+ * Writes the parameters of <model> into Hugin NET file named <filename> 
+ * @param model the model to write
+ * @param filename the name of output file
+ */
 int write_model(nip model, char* filename);
 
 
-/* This provides a way to get rid of a model and free some memory. */
+/**
+ * Gets rid of a model and frees some memory.
+ */
 void free_model(nip model);
 
 
-/* This reads data from the data file and constructs a set of time series 
- * according to the given model. */
+/**
+ * Reads data from the data file and constructs a set of time series 
+ * according to the given model. Remember to free results afterwards.
+ * @param model The random variables and all
+ * @param datafile Name of the input file as a string
+ * @results pointer Where the time_series is set
+ */
 int read_timeseries(nip model, char* datafile, 
 		    time_series **results);
 
 
-/* This writes a set of time series data into a file. */
+/**
+ * Writes a set of time series data into a file. 
+ * @param ts_set Array of time_series'
+ * @param n_series Number of time_series'
+ * @param filename Name of the output file
+ */
 int write_timeseries(time_series *ts_set, int n_series, char* filename);
 
 
-/* A method for freeing the huge chunk of memory used by a time series. 
- * Note that this does not free the model. */
+/**
+ * A method for freeing the huge chunk of memory used by a time series. 
+ * Note that this does not free the model. 
+ */
 void free_timeseries(time_series ts);
 
 
