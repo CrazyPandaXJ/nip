@@ -934,7 +934,7 @@ int set_observation(time_series ts, nip_variable v, int time,
   if((j < 0) || (i < 0))
     return NIP_ERROR_INVALID_ARGUMENT;
 
-  ts->data[time][j] = i;
+  ts->data[time][j] = i; // FIXME: check time < ts->length ?
   return 0;
 }
 

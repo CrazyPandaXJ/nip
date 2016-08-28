@@ -203,67 +203,94 @@ int write_timeseries(time_series *ts_set, int n_series, char* filename);
 
 
 /**
- * A method for freeing the huge chunk of memory used by a time series. 
+ * Method for freeing the huge chunk of memory used by a time series. 
  * Note that this does not free the model. 
  */
 void free_timeseries(time_series ts);
 
 
-/* Tells the length of the time series. */
+/**
+ * Tells the length of a time series. 
+ * (Yes, we are dealing with batch processing.)
+ */
 int timeseries_length(time_series ts);
 
 
-/* Writes the inferred probabilities of given variable into a file. */
+/**
+ * Writes the inferred probabilities of a given variable into a file. 
+ * (Batch mode)
+ */
 int write_uncertainseries(uncertain_series *ucs_set, int n_series, 
 			  nip_variable v, char* filename);
 
 
-/* A method for freeing the memory used by an uncertain time series. */
+/**
+ * The method for freeing the memory used by an uncertain time series.
+ */
 void free_uncertainseries(uncertain_series ucs);
 
 
-/* Tells the length of the uncertain time series. */
+/**
+ * Tells the length of an uncertain time series.
+ */
 int uncertainseries_length(uncertain_series ucs);
 
 
-/* A method for reading an observation from the time series. 
- * You'll have to specify the variable. DO NOT alter the string returned 
- * by the function! The returned value may be NULL if the variable was not 
- * observed at the specified moment in time. The time span is [0, T-1] */
+/**
+ * Method for reading an observation from the time series. 
+ * You'll have to specify the variable v. 
+ * DO NOT alter the string returned by the function! 
+ * The returned value may be NULL if the variable was not 
+ * observed at the specified moment in time. 
+ * The time span is [0, T-1] */
 char* get_observation(time_series ts, nip_variable v, int time);
 
 
-/* A method for setting an observation in the time series. */
+/**
+ * Method for modifying an observation in the time series. 
+ * - The variable <v> must be one of the observed variables in the
+ * time series.
+ * - The observation must match one of the states of that
+ * variable.
+ * @return non-zero integer if anything went wrong
+ */
 int set_observation(time_series ts, nip_variable v, int time, 
 		    char* observation);
 
 
-/* This is a function for telling the model about observations. 
- * In case of an error, a non-zero value is returned. */
+/**
+ * This is a function for telling the model about observations. 
+ * In case of an error, a non-zero value is returned. 
+ */
 int insert_hard_evidence(nip model, char* varname, char* observation);
 
 
-/* If an observation has some uncertainty, the evidence can be inserted 
- * with this procedure. The returned value is 0 if everything went well. */
+/**
+ * If an observation has some uncertainty, the evidence can be inserted 
+ * with this procedure. The returned value is 0 if everything went well. 
+ */
 int insert_soft_evidence(nip model, char* varname, double* distribution);
 
 
-/* Method for inserting part of the evidence at a specified step <t> in a
+/**
+ * Method for inserting part of the evidence at a specified step <t> in a
  * time series <ts> into the (time slice) model <ts->model>. 
- * Only the variables marked with <mark_mask> will be considered. 
- * mark_mask == MARK_BOTH  => all suitable evidence of the time step is used
- * mark_mask == MARK_OFF   => only unmarked variables are used
- * mark_mask == MARK_ON    => only marked variables are used */
+ * Only the variables marked with <mark_mask> will be considered: 
+ * - mark_mask == MARK_BOTH : all suitable evidence of the time step is used
+ * - mark_mask == MARK_OFF  : only unmarked variables are used
+ * - mark_mask == MARK_ON   : only marked variables are used */
 int insert_ts_step(time_series ts, int t, nip model, char mark_mask);
 
 
-/* Method for inserting part of the evidence at a specified step <t> in an
+/**
+ * Method for inserting part of the evidence at a specified step <t> in an
  * uncertain time series <ucs> into the model <ucs->model>.  Only the
  * variables marked with <mark_mask> will be considered. */
 int insert_ucs_step(uncertain_series ucs, int t, nip model, char mark_mask);
 
 
-/* This algorithm computes the marginal posterior probability distributions
+/**
+ * This algorithm computes the marginal posterior probability distributions
  * for every hidden variable and for every time step according to the
  * timeseries.  It uses only forward propagation, so the result of time
  * step t is not affected by the rest of the timeseries.  You'll have to
@@ -278,11 +305,12 @@ uncertain_series forward_inference(time_series ts, nip_variable vars[],
 				   int nvars, double* loglikelihood);
 
 
-/* This one computes the probability distributions for every 
+/**
+ * This one computes the probability distributions for every 
  * hidden variable and for every time step according to the timeseries.
  * It uses both forward and backward propagation, so the result of time 
  * step t is affected by the whole timeseries. 
- *  You'll have to specify the variables of interest in the vars array 
+ * You'll have to specify the variables of interest in the vars array 
  * and the number of the variables. 
  * Returns also the average log. likelihood if <loglikelihood> is not NULL
  *
@@ -294,30 +322,36 @@ uncertain_series forward_backward_inference(time_series ts,
 					    double* loglikelihood);
 
 
-/* Fetches you the variable with a given symbol. */
+/**
+ * Fetches you the variable with a given symbol. 
+ */
 nip_variable model_variable(nip model, char* symbol);
 
 
-/* Makes the join tree consistent i.e. does the inference on a single 
- * timeslice (useful after inserting evidence). */
+/**
+ * Makes the join tree consistent i.e. does the inference on a single 
+ * timeslice (useful after inserting evidence). 
+ */
 void make_consistent(nip model);
 
 
-/* Computes the most likely state sequence of the variables, given the time
+/**
+ * Computes the most likely state sequence of the variables, given the time
  * series. In other words, this function implements the idea also known as
  * the Viterbi algorithm. (The model is included in the time_series.)  
  * NOTE: this is not implemented yet! */
 time_series mlss(nip_variable vars[], int nvars, time_series ts);
 
 
-/* Teaches the given model according to the given time series with
+/**
+ * Trains the given model according to the given time series with
  * EM-algorithm. Returns an error code.  
- * NOTE: call random_seed() before this!  
- * NOTE2: the model is included in the time_series 
  * <learning_curve> can be NULL: if it isn't, it will be
  * emptied and filled with average log. likelihood values for each
  * iteration... 
  *
+ * NOTE: call random_seed() before this!  
+ * NOTE: the model is included in the time_series 
  * NOTE: only evidence for the marked variables is used. Unmarked are
  * ignored and you can thus easily omit evidence for an entire variable.
  */
@@ -325,34 +359,33 @@ nip_error_code em_learn(time_series* ts, int n_ts, double threshold,
 			nip_double_list learning_curve);
 
 
-/* Tells the likelihood of observations (not normalised). 
+/**
+ * Tells the likelihood of observations (not normalised). 
  * You must normalise the result with the mass computed before 
- * the evidence was put in. */
+ * the evidence was put in. 
+ */
 double model_prob_mass(nip model);
 
 
-/*
+/**
  * Calculates the probability distribution of a variable.
  * The join tree MUST be consistent before calling this.
- * Parameters:
- * - model: the model that contains the variable
- * - v: the variable whose distribution we want
- * Returns an array of doubles (remember to free the result when not needed).
+ * @param model The NIP model that contains the variable
+ * @param v The random variable whose distribution we want
+ * @return an array of doubles (remember to free the result when not needed).
  * The returned array is of size v->cardinality.
  * In case of problems, NULL is returned.
  */
 double* get_probability(nip model, nip_variable v);
 
 
-/*
+/**
  * Calculates the joint probability distribution of a set of variables.
  * The join tree MUST be consistent before calling this.
- * Parameters:
- * - model: the model that contains the variables
- * - vars: the variables whose distribution we want
- * - num_of_vars: the number of variables (size of "vars")
- * Returns the result as a potential 
- * (remember to free the result when not needed).
+ * @param model The model that contains the variables
+ * @param vars  The variables whose distribution we want
+ * @param num_of_vars The number of variables (size of "vars")
+ * @return the result as a potential (remember to free the result afterwards).
  * The variables of the potential are in the same order as they were given.
  * In case of problems, NULL is returned.
  */
@@ -360,26 +393,31 @@ nip_potential get_joint_probability(nip model, nip_variable *vars,
 				    int num_of_vars);
 
 
-/* Generates time series data according to a model. 
+/**
+ * Samples time series data according to a model. 
  * NOTE: call random_seed() before this! 
  * (and take care it is not done more often than once per second) */
 time_series generate_data(nip model, int length);
 
 
-/* Sets the seed number for rand & co. 
+/**
+ * Sets the seed number for rand & co. 
  * If seedpointer is NULL, this shuffles the value from time of day.
  * Returns the value of seed number.
  *
  * NOTE: don't call this more often than once per second! 
- * (unless you want the same random seed as last time) */
+ * (unless you want the same random seed as last time) 
+ */
 long random_seed(long* seedpointer);
 
-/* For generating single observations. */
+/**
+ * For generating single observations. 
+ */
 int lottery(double* distribution, int size);
 
 
-/*
- * Prints the cliques in the given nip model.
+/**
+ * Prints the cliques in the given nip model to stdout.
  */
 void print_cliques(nip model);
 
