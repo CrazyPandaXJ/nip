@@ -9,7 +9,7 @@
  * - freeing the memory after use.
  *
  * @author Janne Toivola
- * @copyright &copy; 2012  Janne Toivola <br>
+ * @copyright &copy; 2007,2012 Janne Toivola <br>
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -402,22 +402,23 @@ time_series generate_data(nip model, int length);
 
 /**
  * Sets the seed number for rand & co. 
- * If seedpointer is NULL, this shuffles the value from time of day.
- * Returns the value of seed number.
- *
- * NOTE: don't call this more often than once per second! 
+ * If seedpointer is NULL, this shuffles the value from time of day (seconds).
+ * NOTE: Do not call this more often than once per second! 
  * (unless you want the same random seed as last time) 
+ * @return the used seed number.
  */
 long random_seed(long* seedpointer);
 
 /**
- * For generating single observations. 
+ * Utility function for generating single observations. 
+ * @see random_seed for initialization of pseudorandom generator.
  */
 int lottery(double* distribution, int size);
 
 
 /**
  * Prints the cliques in the given nip model to stdout.
+ * (TODO: make it more like fprintf_cliques)
  */
 void print_cliques(nip model);
 

@@ -1,39 +1,36 @@
-/*  NIP - Dynamic Bayesian Network library
-    Copyright (C) 2012  Janne Toivola
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License along
-    with this program; if not, see <http://www.gnu.org/licenses/>.
-*/
-
-/* nip.c 
- * Top level abstractions of the NIP system
- * Author: Janne Toivola
- * Version: $Id: nip.c,v 1.218 2011-01-23 23:01:47 jatoivol Exp $
+/**
+ * @file
+ * @brief Top level abstractions of the NIP system: probably all you need to use
+ * 
+ * @author Janne Toivola
+ * @copyright &copy; 2007,2012 Janne Toivola <br>
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version. <br>
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details. <br>
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "nip.h"
 
 
-/* write new kind of net files (net language rev.2) */
+/** Write new kind of net files (net language rev.2) */
 #define NET_LANG_V2
 
+/** This many probabilities / row of text */
 #define POTENTIAL_ELEMENTS_PER_LINE 7
 
+/** Run EM steps at least this many times */
 #define MIN_EM_ITERATIONS 3
 
 /*#define DEBUG_NIP*/
 
-/* External Hugin Net parser functions */
+/* External Hugin Net parser functions, TODO: use huginnet.tab.h? */
 FILE* open_net_file(const char *filename);
 void close_net_file();
 int yyparse();
