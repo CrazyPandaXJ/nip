@@ -40,7 +40,7 @@
 #include "nipjointree.h"
 #include "niperrorhandler.h"
 #include "nipparsers.h"
-#include "huginnet.tab.h"
+//#include "huginnet.tab.h"
 
 /* Hidden: nipgraph.h, nipheap.h, nipstring.h */
 

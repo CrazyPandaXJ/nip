@@ -30,13 +30,18 @@
 
 /*#define DEBUG_NIP*/
 
-/* External Hugin Net parser functions, TODO: use huginnet.tab.h? */
+/* External Hugin Net parser functions */
+#include "huginnet.tab.h" // int yyparse();
+
+/* TODO: Put these guys into a separate shared header?
+ * Or find The Proper Way to do stuff without global variables!
+ * Hint: %parse-param in huginnet.y? */
 FILE* open_net_file(const char *filename);
 void close_net_file();
-int yyparse();
 nip_variable_list get_parsed_variables();
 int get_cliques(nip_clique** clique_array_pointer);
 void get_parsed_node_size(int* x, int* y);
+
 
 /* Internal helper functions */
 static nip_error_code start_timeslice_message_pass(nip model, 
