@@ -806,6 +806,8 @@ void free_timeseries(time_series ts){
 
 /* Replace this with the macro TIME_SERIES_LENGTH() */
 int timeseries_length(time_series ts){
+  if !ts
+    return 0;
   return ts->length;
 }
 
@@ -907,6 +909,8 @@ void free_uncertainseries(uncertain_series ucs){
 
 
 int uncertainseries_length(uncertain_series ucs){
+  if !ucs
+    return 0;
   return ucs->length;
 }
 
@@ -920,6 +924,9 @@ char* get_observation(time_series ts, nip_variable v, int time){
   if(j < 0)
     return NULL;
 
+  if (time < 0 || ts->length <= time)
+    return NULL;
+  
   return v->state_names[ts->data[time][j]];
 }
 
