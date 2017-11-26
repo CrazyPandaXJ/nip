@@ -1,38 +1,28 @@
-/*  NIP - Dynamic Bayesian Network library
-    Copyright (C) 2012  Janne Toivola
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License along
-    with this program; if not, see <http://www.gnu.org/licenses/>.
-*/
-
-/* nipgraph.h 
- * Functions for representing and manipulating graphs, and methods for 
+/**
+ * @file
+ * @brief Functions for representing and manipulating graphs, and methods for 
  * constructing the join tree.
- * Authors: Antti Rasinen, Janne Toivola
- * Version: $Id: nipgraph.h,v 1.11 2011-01-23 23:01:47 jatoivol Exp $
+ *
+ * @author Antti Rasinen
+ * @author Janne Toivola
+ * @copyright &copy; 2007,2012 Janne Toivola <br>
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version. <br>
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details. <br>
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef __NIPGRAPH_H__
 #define __NIPGRAPH_H__
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "nipheap.h"
-#include "niplists.h"
-#include "nipjointree.h"
 #include "nipvariable.h"
-#include "niperrorhandler.h"
+#include "nipjointree.h"
 
 #define NIP_ADJM(g, i, j) ( (g)->adj_matrix[(i)*(g)->size + (j)] )
 
@@ -103,25 +93,26 @@ int nip_graph_cluster(nip_graph g, nip_variable v,
 int nip_graph_linked(nip_graph g, nip_variable parent, nip_variable child);
 
 
-/* Adds a new variable (ie. a node) to the graph. Do this at most
+/**
+ * Adds a new variable (ie. a node) to the graph. Do this at most
  * nip_graph_size(g) times and preferably during the initialization 
  * of the graph.
  * Parameter g: the graph
  * Parameter v: the variable (node) to be added
- * Returns an error code.
+ * @return an error code
  */
-nip_error_code nip_graph_add_node(nip_graph g, nip_variable v);
+int nip_graph_add_node(nip_graph g, nip_variable v);
 
 
-/* Adds a dependency between a child node and a parent node, 
+/**
+ * Adds a dependency between a child node and a parent node, 
  * ie. an edge between the nodes.
  * Parameter g: the graph
  * Parameter parent: the parent variable
  * Parameter child: the child variable
+ * @return an error code
  */
-nip_error_code nip_graph_add_child(nip_graph g, 
-				   nip_variable parent, 
-				   nip_variable child);
+int nip_graph_add_child(nip_graph g, nip_variable parent, nip_variable child);
 
 
 /* Returns an undirected copy of the graph g. */
@@ -153,13 +144,15 @@ nip_graph nip_add_interface_edges(nip_graph g);
 int nip_graph_to_cliques(nip_graph g, nip_clique** cliques_p);
 
 
-/* Constructs sepsets and inserts them between the cliques to form a
- * join tree. Returns an error code.
+/**
+ * Constructs sepsets and inserts them between the cliques to form a
+ * join tree.
  * Parameters:
  *  - cliques : an array of cliques
  *  - num_of_cliques : the number of cliques in the given array
+ * @return an error code
  */
-nip_error_code nip_create_sepsets(nip_clique *cliques, int num_of_cliques);
+int nip_create_sepsets(nip_clique *cliques, int num_of_cliques);
 
 
 /* Internal helper function for finding cliques from a moral graph. */

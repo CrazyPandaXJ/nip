@@ -1,31 +1,41 @@
-/*  NIP - Dynamic Bayesian Network library
-    Copyright (C) 2012  Janne Toivola
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License along
-    with this program; if not, see <http://www.gnu.org/licenses/>.
-*/
-
-/* nipgraph.c $Id: nipgraph.c,v 1.27 2011-03-14 13:22:10 jatoivol Exp $
+/**
+ * @file
+ * @brief Functions for representing and manipulating graphs, and methods for 
+ * constructing the join tree.
+ *
+ * @author Antti Rasinen
+ * @author Janne Toivola
+ * @copyright &copy; 2007,2012 Janne Toivola <br>
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version. <br>
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details. <br>
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "nipgraph.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <assert.h>
+
+#include "niperrorhandler.h"
+#include "niplists.h"
+#include "nipheap.h"
+
 /*#define NIP_DEBUG_GRAPH*/
 
 /* Internal helper functions */
-static nip_error_code nip_build_graph_index(nip_graph g);
+static int nip_build_graph_index(nip_graph g);
 
-static nip_clique* nip_cluster_list_to_clique_array(nip_int_array_list clusters, nip_variable* vars, int n);
+static nip_clique* nip_cluster_list_to_clique_array(nip_int_array_list clusters,
+						      nip_variable* vars, int n);
 
 /* Function for computing primary keys for cluster heap */
 static int nip_cluster_primary_cost(void* variables, int n);
@@ -47,7 +57,7 @@ static nip_heap nip_build_cluster_heap(nip_graph gm);
 static int nip_family_cluster(void* i, int isize, void* r, int rsize);
 
 /* Updates remaining candidate clusters after removing one... */
-static nip_error_code nip_update_cluster_heap(nip_heap h, 
+static int nip_update_cluster_heap(nip_heap h, 
 					      nip_variable* cluster, 
 					      int csize);
 
@@ -155,8 +165,7 @@ int nip_graph_index(nip_graph g, nip_variable v) {
 } 
 
 
-int nip_graph_cluster(nip_graph g, nip_variable v,
-		      nip_variable** neighbours) {
+int nip_graph_cluster(nip_graph g, nip_variable v, nip_variable** neighbours) {
   int i, j, n, vi;
   nip_variable* cluster;
   
@@ -208,7 +217,7 @@ int nip_graph_linked(nip_graph g, nip_variable parent, nip_variable child) {
 
 /*** SETTERS ***/
 
-nip_error_code nip_graph_add_node(nip_graph g, nip_variable v){
+int nip_graph_add_node(nip_graph g, nip_variable v){
   int id;
   if (g->top == g->size)
     return NIP_ERROR_GENERAL; /* Cannot add more items. */
@@ -236,9 +245,7 @@ nip_error_code nip_graph_add_node(nip_graph g, nip_variable v){
   return NIP_NO_ERROR;
 }
 
-nip_error_code nip_graph_add_child(nip_graph g, 
-				   nip_variable parent, 
-				   nip_variable child){
+int nip_graph_add_child(nip_graph g, nip_variable parent, nip_variable child){
     int parent_i, child_i;
 
     parent_i = nip_graph_index(g, parent);
@@ -258,7 +265,7 @@ nip_error_code nip_graph_add_child(nip_graph g,
     return nip_variable_id(v1) - nip_variable_id(v2);
 }*/
 
-static nip_error_code nip_build_graph_index(nip_graph g) {
+static int nip_build_graph_index(nip_graph g) {
     int i;
 
     if(!g)
@@ -351,7 +358,8 @@ nip_graph nip_add_interface_edges(nip_graph g){
 }
 
 
-static nip_clique* nip_cluster_list_to_clique_array(nip_int_array_list clusters, nip_variable* vars, int n) {
+static nip_clique* nip_cluster_list_to_clique_array(nip_int_array_list clusters,
+						    nip_variable* vars, int n) {
     int n_vars, i;
     int ncliques, clique_counter;
     nip_int_array_link lnk;
@@ -503,7 +511,7 @@ int nip_graph_to_cliques(nip_graph g, nip_clique** cliques_p) {
 }
 
 /*** Used to be in clique.c for some odd reason ***/
-nip_error_code nip_create_sepsets(nip_clique *cliques, int num_of_cliques){
+int nip_create_sepsets(nip_clique *cliques, int num_of_cliques){
 
   int inserted = 0;
   int i;
@@ -684,9 +692,7 @@ static int nip_family_cluster(void* i, int isize, void* r, int rsize){
 }
 
 
-static nip_error_code nip_update_cluster_heap(nip_heap h, 
-					      nip_variable* cluster, 
-					      int csize){
+static int nip_update_cluster_heap(nip_heap h, nip_variable* cluster, int csize){
   int i, j, k, index;
   int osize;
   void* old_item;

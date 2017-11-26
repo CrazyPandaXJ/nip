@@ -23,37 +23,47 @@
 #ifndef __NIPERRORHANDLER_H__
 #define __NIPERRORHANDLER_H__
 
-#include <stdio.h>
+#ifndef __STDC_VERSION__
+#define __STDC_VERSION__ 199901L
+#endif
+#ifndef _POSIX_VERSION
+#define _POSIX_VERSION 200112L
+#endif
 
-/* Is there something like errno.h ?? */
-typedef enum nip_error_code_enum {
-  NIP_NO_ERROR = 0,
-  NIP_ERROR_NULLPOINTER = 1,
-  NIP_ERROR_DIVBYZERO = 2,
-  NIP_ERROR_INVALID_ARGUMENT = 3,
-  NIP_ERROR_OUTOFMEMORY = 4,
-  NIP_ERROR_IO = 5,
-  NIP_ERROR_GENERAL = 6,
-  NIP_ERROR_FILENOTFOUND = 7,
-  NIP_ERROR_BAD_LUCK = 8
-} nip_error_code;
+#include <errno.h>
+
+// TODO: get rid of these
+#define NIP_NO_ERROR 0
+#define NIP_ERROR_NULLPOINTER EFAULT
+#define NIP_ERROR_DIVBYZERO EDOM
+#define NIP_ERROR_INVALID_ARGUMENT EINVAL
+#define NIP_ERROR_OUTOFMEMORY ENOMEM
+#define NIP_ERROR_IO EIO
+#define NIP_ERROR_GENERAL 6 // TODO: return the root cause!
+#define NIP_ERROR_FILENOTFOUND ENOENT
+#define NIP_ERROR_BAD_LUCK 8 // FIXME: srsly?
 
 
-/* Method for reporting an error. 
- * - srcFile is the source file (__FILE__)
- * - line is the number of the line in the source code (__LINE__)
- * - error code e is for example NIP_ERROR_DIVBYZERO
- * - if verbose is other than 0, a message will be displayed 
+/**
+ * Method for reporting an error. 
+ * @param srcFile is the source file (__FILE__)
+ * @param line is the number of the line in the source code (__LINE__)
+ * @param error is for example ENOMEM
+ * @param if verbose is other than 0, a message will be printed
+ * @return the same error code to be passed on
  */
-void nip_report_error(char *srcFile, int line, nip_error_code e, int verbose);
+int nip_report_error(char *srcFile, int line, int error, int verbose);
 
-/* Method for resetting the errorcounter. */
+/**
+ * Method for resetting the error counter. */
 void nip_reset_error_handler();
 
-/* Method for checking what was the last error */
-nip_error_code nip_check_error_type();
+/**
+ * Method for checking what was the last error */
+int nip_check_error_type();
 
-/* Method for checking how many errors have occured */
+/**
+ * Method for checking how many errors have occured */
 int nip_check_error_counter();
 
 #endif
