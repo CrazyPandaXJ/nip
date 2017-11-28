@@ -36,15 +36,14 @@
 /* The exposed part of NIP */
 #include "niperrorhandler.h" ///< runtime error reporting
 #include "niplists.h" ///< structures for lists of basic data
+//#include "nipstring.h" ///< tokeniser for parser
+#include "nipparsers.h" ///< TODO: doxygen + error handling
+//#include "huginnet.tab.h" ///< TODO: doxygen + error handling
 //#include "nipheap.h" ///< priority heap for building graphs
 #include "nipvariable.h" ///< random categorical variables
 #include "nippotential.h" ///< multidimensional probability distributions
 #include "nipjointree.h" ///< clique tree and probabilistic inference
-//#include "nipgraph.h" ///< TODO: doxygen + error handling
-#include "nipparsers.h"
-//#include "huginnet.tab.h"
-
-/* Hidden: nipgraph.h, nipheap.h, nipstring.h */
+//#include "nipgraph.h" ///< conversions from Bayes net into join tree
 
 /* TODO: consider separating these from NIP core, let users have their own */
 #define TIME_SERIES_LENGTH(ts) ( (ts)->length ) ///< gets time series length

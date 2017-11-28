@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Representation of categorical random variables in Dynamic Bayes Network models
+ * @brief Runtime error reporting, where needed
  *
  * @author Janne Toivola
  * @author Mikko Korpela
@@ -19,6 +19,8 @@
 
 #include "niperrorhandler.h"
 #include <errno.h>
+
+/* TODO: compiler flag for suppressing stdio / error messages */
 #include <stdio.h>
 
 /* A variable for counting errors, in case more than 1 allowed */
@@ -36,13 +38,13 @@ int nip_report_error(char *srcFile, int line, int error, int verbose){
     case 0 :
       fprintf(stderr, "O.K.\n"); break;
     case EFAULT : 
-      fprintf(stderr, "Nullpointer given.\n"); break;
+      fprintf(stderr, "Nullpointer given.\n"); break; // the only bad addresses
     case EDOM :
-      fprintf(stderr, "Division by zero...\n"); break; // TODO
+      fprintf(stderr, "Argument outside the defined domain.\n"); break;
     case EINVAL :
       fprintf(stderr, "Invalid argument given.\n"); break;
     case ENOMEM :
-      fprintf(stderr, "Malloc or calloc failed.\n"); break;
+      fprintf(stderr, "Failed to allocate memory.\n"); break;
     case EIO :
       fprintf(stderr, "I/O failure.\n"); break;
     case ENOENT :

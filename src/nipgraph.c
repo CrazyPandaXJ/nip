@@ -78,7 +78,7 @@ nip_graph nip_new_graph(unsigned n) {
   newgraph->top = 0;
   
   newgraph->adj_matrix = (int*) calloc(n*n, sizeof(int));
-  if(!(newgraph->adj_matrix)){
+  if(!(newgraph->adj_matrix)) {
     nip_report_error(__FILE__, __LINE__, ENOMEM, 1);
     free(newgraph);
     return NULL;
