@@ -31,15 +31,17 @@
 #include "nippotential.h"
 #include "niperrorhandler.h"
 
-/* The current input file 
+/**
+ * The current input file 
  * TODO: get rid of these global variables and make them a struct... */
 static FILE* nip_net_file = NULL;
 
-/* Is there a hugin net file open? 0 if no, 1 if yes. 
+/**
+ * Indicates if there is a Hugin net file open? 0 if no, 1 if yes. 
  * NOTE: could "nip_net_file == NULL" be used for representing the same info? 
  */
 static int nip_net_file_open = 0;
-
+ 
 /* Global variables for relaying results:
  * Some of the results are returned via global variables and some 
  * as the semantic values of net language constructs. 
@@ -80,13 +82,35 @@ static int yylex (void);
 
 static void yyerror (const char *s);  /* Called by yyparse on error */
 
+/**
+ * Creates a graph from a list of variables referencing each other
+ * @param vl List of variables
+ * @param g An initial graph
+ * @return error code, or 0 if successful
+ */
 static int parsed_vars_to_graph(nip_variable_list vl, nip_graph g);
 
+/**
+ * Initialises a set of cliques with model parameters
+ * @param potentials List of parsed potentials and their variables
+ * @param cliques Array of cliques, which still have uniform potentials
+ * @param ncliques Size of \p cliques
+ * @return error code, or 0 if successful
+ */
 static int parsed_potentials_to_jtree(nip_potential_list potentials, 
 				      nip_clique* cliques, int ncliques);
 
+/**
+ * Sets the interface links to variable structures
+ * @param il List of interface variables and names of their matching pairs
+ * @param vl List of all variables
+ * @return error code, or 0 if successful
+ */
 static int interface_to_vars(nip_interface_list il, nip_variable_list vl);
 
+/**
+ * Debugging code for printing parsed model parameters
+ */
 static void print_parsed_stuff(nip_potential_list pl);
 %}
 
@@ -161,13 +185,15 @@ void get_parsed_node_size(int* x, int* y);
 
 %%
 input:  nodes potentials {
-  if(parsed_vars_to_graph(nip_parsed_vars, nip_Graph) != NIP_NO_ERROR){
-    nip_report_error(__FILE__, __LINE__, NIP_ERROR_GENERAL, 1);
+  int nip_parser_error = parsed_vars_to_graph(nip_parsed_vars, nip_Graph);
+  if(nip_parser_error != 0){
+    nip_report_error(__FILE__, __LINE__, nip_parser_error, 1);
     YYABORT;
   }
 
-  if(interface_to_vars(nip_interface_relations, nip_parsed_vars) 
-     != NIP_NO_ERROR){
+  nip_parser_error = interface_to_vars(nip_interface_relations, nip_parsed_vars);
+  if(nip_parser_error != 0){
+    nip_report_error(__FILE__, __LINE__, nip_parser_error, 1);
     yyerror("Invalid timeslice specification!\nCheck NIP_next declarations.");
     YYABORT;
   }
@@ -177,13 +203,14 @@ input:  nodes potentials {
   nip_free_graph(nip_Graph); /* Get rid of the graph (?) */
   nip_Graph = NULL;
   if(nip_n_cliques < 0){
-    nip_report_error(__FILE__, __LINE__, NIP_ERROR_GENERAL, 1);
+    nip_report_error(__FILE__, __LINE__, EINVAL, 1);
     YYABORT;
   }
 
-  if(parsed_potentials_to_jtree(nip_parsed_potentials, 
-				nip_cliques, nip_n_cliques) != NIP_NO_ERROR){
-    nip_report_error(__FILE__, __LINE__, NIP_ERROR_GENERAL, 1);
+  nip_parser_error = parsed_potentials_to_jtree(nip_parsed_potentials, 
+						nip_cliques, nip_n_cliques);
+  if(nip_parser_error != 0){
+    nip_report_error(__FILE__, __LINE__, EINVAL, 1);
     YYABORT;
   }
 #ifdef DEBUG_BISON
@@ -194,13 +221,15 @@ input:  nodes potentials {
 
 /* optional net block */
 |  netDeclaration nodes potentials {
-  if(parsed_vars_to_graph(nip_parsed_vars, nip_Graph) != NIP_NO_ERROR){
-    nip_report_error(__FILE__, __LINE__, NIP_ERROR_GENERAL, 1);
+  int nip_parser_error = parsed_vars_to_graph(nip_parsed_vars, nip_Graph);
+  if(nip_parser_error != 0){
+    nip_report_error(__FILE__, __LINE__, nip_parser_error, 1);
     YYABORT;
   }
 
-  if(interface_to_vars(nip_interface_relations, nip_parsed_vars) 
-     != NIP_NO_ERROR){
+  nip_parser_error = interface_to_vars(nip_interface_relations, nip_parsed_vars);
+  if(nip_parser_error != 0){
+    nip_report_error(__FILE__, __LINE__, nip_parser_error, 1);
     yyerror("Invalid timeslice specification!\nCheck NIP_next declarations.");
     YYABORT;
   }
@@ -210,13 +239,14 @@ input:  nodes potentials {
   nip_free_graph(nip_Graph); /* Get rid of the graph (?) */
   nip_Graph = NULL;
   if(nip_n_cliques < 0){
-    nip_report_error(__FILE__, __LINE__, NIP_ERROR_GENERAL, 1);
+    nip_report_error(__FILE__, __LINE__, EINVAL, 1);
     YYABORT;
   }
 
-  if(parsed_potentials_to_jtree(nip_parsed_potentials, 
-				nip_cliques, nip_n_cliques) != NIP_NO_ERROR){
-    nip_report_error(__FILE__, __LINE__, NIP_ERROR_GENERAL, 1);
+  nip_parser_error = parsed_potentials_to_jtree(nip_parsed_potentials, 
+						nip_cliques, nip_n_cliques);
+  if(nip_parser_error != 0){
+    nip_report_error(__FILE__, __LINE__, nip_parser_error, 1);
     YYABORT;
   }
 #ifdef DEBUG_BISON
@@ -228,13 +258,15 @@ input:  nodes potentials {
 /* possible old class statement */
 | token_class UNQUOTED_STRING '{' parameters nodes potentials '}' {
   free($2); /* the classname is useless */
-  if(parsed_vars_to_graph(nip_parsed_vars, nip_Graph) != NIP_NO_ERROR){
-    nip_report_error(__FILE__, __LINE__, NIP_ERROR_GENERAL, 1);
+  int nip_parser_error = parsed_vars_to_graph(nip_parsed_vars, nip_Graph);
+  if(nip_parser_error != 0){
+    nip_report_error(__FILE__, __LINE__, nip_parser_error, 1);
     YYABORT;
   }
 
-  if(interface_to_vars(nip_interface_relations, nip_parsed_vars) 
-     != NIP_NO_ERROR){
+  nip_parser_error = interface_to_vars(nip_interface_relations, nip_parsed_vars);
+  if(nip_parser_error != 0){
+    nip_report_error(__FILE__, __LINE__, nip_parser_error, 1);    
     yyerror("Invalid timeslice specification!\nCheck NIP_next declarations.");
     YYABORT;
   }
@@ -244,13 +276,14 @@ input:  nodes potentials {
   nip_free_graph(nip_Graph); /* Get rid of the graph (?) */
   nip_Graph = NULL;
   if(nip_n_cliques < 0){
-    nip_report_error(__FILE__, __LINE__, NIP_ERROR_GENERAL, 1);
+    nip_report_error(__FILE__, __LINE__, EINVAL, 1);
     YYABORT;
   }
 
-  if(parsed_potentials_to_jtree(nip_parsed_potentials, 
-				nip_cliques, nip_n_cliques) != NIP_NO_ERROR){
-    nip_report_error(__FILE__, __LINE__, NIP_ERROR_GENERAL, 1);
+  nip_parser_error = parsed_potentials_to_jtree(nip_parsed_potentials, 
+						nip_cliques, nip_n_cliques);
+  if(nip_parser_error != 0){
+    nip_report_error(__FILE__, __LINE__, EINVAL, 1);
     YYABORT;
   }
 #ifdef DEBUG_BISON
@@ -284,7 +317,7 @@ nodeDeclaration:    token_node UNQUOTED_STRING '{' node_params '}' {
     free(label); nip_label = NULL;
     asprintf(&label, "NIP parser: The states field is missing (node %s)", $2);
     yyerror(label);
-    nip_report_error(__FILE__, __LINE__, NIP_ERROR_GENERAL, 1);
+    nip_report_error(__FILE__, __LINE__, EINVAL, 1);
     free($2);
     free(label);
     free(nip_persistence); nip_persistence = NULL;
@@ -294,7 +327,7 @@ nodeDeclaration:    token_node UNQUOTED_STRING '{' node_params '}' {
   v = nip_new_variable($2, label, states, nip_n_statenames);
 
   if(v == NULL){
-    nip_report_error(__FILE__, __LINE__, NIP_ERROR_GENERAL, 1);
+    nip_report_error(__FILE__, __LINE__, EINVAL, 1);
     free($2);
     free(label); nip_label = NULL;
     free(nip_persistence); nip_persistence = NULL;
@@ -317,8 +350,8 @@ nodeDeclaration:    token_node UNQUOTED_STRING '{' node_params '}' {
       nip_interface_relations = nip_new_interface_list();
     retval = nip_append_interface(nip_interface_relations, v, nip_persistence);
 
-    if(retval != NIP_NO_ERROR){
-      nip_report_error(__FILE__, __LINE__, NIP_ERROR_GENERAL, 1);
+    if(retval != 0){
+      nip_report_error(__FILE__, __LINE__, retval, 1);
       free($2);
       free(label); nip_label = NULL;
       free(nip_persistence); nip_persistence = NULL;
@@ -353,7 +386,7 @@ nodeDeclaration:    token_node UNQUOTED_STRING '{' node_params '}' {
     nip_label = NULL;
     asprintf(&label, "NIP parser: The states field is missing (node %s)", $3);
     yyerror(label);
-    nip_report_error(__FILE__, __LINE__, NIP_ERROR_GENERAL, 1);
+    nip_report_error(__FILE__, __LINE__, EINVAL, 1);
     free($3);
     free(label);
     free(nip_persistence); nip_persistence = NULL;
@@ -363,7 +396,7 @@ nodeDeclaration:    token_node UNQUOTED_STRING '{' node_params '}' {
   v = nip_new_variable($3, label, states, nip_n_statenames);
 
   if(v == NULL){
-    nip_report_error(__FILE__, __LINE__, NIP_ERROR_GENERAL, 1);
+    nip_report_error(__FILE__, __LINE__, EINVAL, 1);
     free($3);
     free(label);
     nip_label = NULL;
@@ -385,8 +418,8 @@ nodeDeclaration:    token_node UNQUOTED_STRING '{' node_params '}' {
     if(nip_interface_relations == NULL)
       nip_interface_relations = nip_new_interface_list();
     retval = nip_append_interface(nip_interface_relations, v, nip_persistence);
-    if(retval != NIP_NO_ERROR){
-      nip_report_error(__FILE__, __LINE__, NIP_ERROR_GENERAL, 1);
+    if(retval != 0){
+      nip_report_error(__FILE__, __LINE__, retval, 1);
       free($3);
       free(label); nip_label = NULL;
       free(nip_persistence); nip_persistence = NULL;
@@ -413,7 +446,7 @@ nodeDeclaration:    token_node UNQUOTED_STRING '{' node_params '}' {
   asprintf(&label, "NET parser: Continuous variables (node %s) %s", $3, 
 	   "are not supported.");
   yyerror(label);
-  nip_report_error(__FILE__, __LINE__, NIP_ERROR_GENERAL, 1);
+  nip_report_error(__FILE__, __LINE__, ENOSYS, 1);
   free($3);
   free(label);
   free(nip_persistence); nip_persistence = NULL;
@@ -430,7 +463,7 @@ nodeDeclaration:    token_node UNQUOTED_STRING '{' node_params '}' {
   asprintf(&label, "NET parser: Utility nodes (node %s) %s", $2, 
 	   "are not supported.");
   yyerror(label);
-  nip_report_error(__FILE__, __LINE__, NIP_ERROR_GENERAL, 1);
+  nip_report_error(__FILE__, __LINE__, ENOSYS, 1);
   free($2);
   free(label);
   free(nip_persistence); nip_persistence = NULL;
@@ -448,7 +481,7 @@ nodeDeclaration:    token_node UNQUOTED_STRING '{' node_params '}' {
   asprintf(&label, "NET parser: Decision nodes (node %s) %s", $2, 
 	   "are not supported.");
   yyerror(label);
-  nip_report_error(__FILE__, __LINE__, NIP_ERROR_GENERAL, 1);
+  nip_report_error(__FILE__, __LINE__, ENOSYS, 1);
   free($2);
   free(label);
   free(nip_persistence); nip_persistence = NULL;
@@ -506,7 +539,7 @@ statesDeclaration:    token_states '=' '(' strings ')' ';' {
   free(nip_parsed_strings); nip_parsed_strings = NULL;
 
   if(!nip_statenames){
-    nip_report_error(__FILE__, __LINE__, NIP_ERROR_GENERAL, 1);
+    nip_report_error(__FILE__, __LINE__, EINVAL, 1);
     YYABORT;
   }
 
@@ -799,7 +832,7 @@ yylex (void)
 {
   int tokenlength;
   int retval = 0;
-  char *token = nip_next_hugin_token(&tokenlength, nip_net_file);
+  char *token = nip_next_hugin_token(nip_net_file, &tokenlength);
   char *nullterminated;
   char *endptr;
   double numval;
