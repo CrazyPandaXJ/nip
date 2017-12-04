@@ -45,49 +45,56 @@ static int nip_net_file_open = 0;
 /* Global variables for relaying results:
  * Some of the results are returned via global variables and some 
  * as the semantic values of net language constructs. 
- * The functional paradigm would be more elegant... */
-static int nip_node_position_x = 100;
-static int nip_node_position_y = 100;
-static int nip_node_size_x = 80;
-static int nip_node_size_y = 60;
+ * TODO: The functional paradigm would be more elegant... */
+static int nip_node_position_x = 100; ///< last parsed horizontal position
+static int nip_node_position_y = 100; ///< last parsed vertical position
+static int nip_node_size_x = 80; ///< last parsed horizontal size
+static int nip_node_size_y = 60; ///< last parsed vertical size
 
-static nip_double_list nip_parsed_doubles = NULL;
-static int        nip_data_size      = 0;
+static nip_double_list nip_parsed_doubles = NULL; ///< list of parsed data
+static int nip_data_size = 0; ///< length of parsed data array
 
-static nip_string_list nip_parsed_strings = NULL;
-static char**     nip_statenames = NULL;
-static int        nip_n_statenames = 0;
+static nip_string_list nip_parsed_strings = NULL; ///< list of parsed names
+static char** nip_statenames = NULL; ///< array of variable value names
+static int nip_n_statenames = 0; ///< size of the array
 
-/* All the unrecognized MY_field = "value" pairs */
-static nip_string_pair_list nip_ignored_net_fields = NULL;
-static nip_string_pair_list nip_ignored_node_fields = NULL;
-static nip_string_pair_list nip_ignored_potential_fields = NULL;
+/* All the unrecognized MY_field = "value" pairs, TODO */
+static nip_string_pair_list nip_ignored_net_fields = NULL; ///< model extras
+static nip_string_pair_list nip_ignored_node_fields = NULL; ///< variable extras
+static nip_string_pair_list nip_ignored_potential_fields = NULL; ///< potential extras
 
-static char* nip_label;       /* node label contents */
-static char* nip_persistence; /* NIP_next contents   */
+static char* nip_label; ///< node label contents
+static char* nip_persistence; ///< NIP_next contents
 
-static nip_variable_list nip_parsed_vars   = NULL;
-static nip_variable_list nip_parent_vars   = NULL;
+static nip_variable_list nip_parsed_vars = NULL; ///< all variables / nodes
+static nip_variable_list nip_parent_vars = NULL; ///< recent parents
 
-static nip_graph nip_Graph = NULL;
+static nip_graph nip_parsed_graph = NULL; ///< the graph
 
-static nip_potential_list nip_parsed_potentials = NULL;
+static nip_potential_list nip_parsed_potentials = NULL; ///< list of potentials
 
-static nip_interface_list nip_interface_relations = NULL;
+static nip_interface_list nip_interface_relations = NULL; ///< list of time dependencies
 
-static nip_clique* nip_cliques = NULL;
-static int   nip_n_cliques = 0;
+static nip_clique* nip_cliques = NULL; ///< join tree as array of cliques
+static int nip_n_cliques = 0; ///< number of cliques
 
+/**
+ * Lexical analysis: what kind of terminal token is next
+ * @return Type code of a token that was read next from \p nip_net_file,
+ * or 0 at the end of file
+ * @see nip_next_hugin_token() */
 static int yylex (void);
 
-static void yyerror (const char *s);  /* Called by yyparse on error */
+ /**
+  * Called by yyparse on error
+  * @param s Error message */
+static void yyerror (const char *s);
 
 /**
  * Creates a graph from a list of variables referencing each other
  * @param vl List of variables
  * @param g An initial graph
- * @return error code, or 0 if successful
- */
+ * @return error code, or 0 if successful */
 static int parsed_vars_to_graph(nip_variable_list vl, nip_graph g);
 
 /**
@@ -95,8 +102,7 @@ static int parsed_vars_to_graph(nip_variable_list vl, nip_graph g);
  * @param potentials List of parsed potentials and their variables
  * @param cliques Array of cliques, which still have uniform potentials
  * @param ncliques Size of \p cliques
- * @return error code, or 0 if successful
- */
+ * @return error code, or 0 if successful */
 static int parsed_potentials_to_jtree(nip_potential_list potentials, 
 				      nip_clique* cliques, int ncliques);
 
@@ -104,49 +110,58 @@ static int parsed_potentials_to_jtree(nip_potential_list potentials,
  * Sets the interface links to variable structures
  * @param il List of interface variables and names of their matching pairs
  * @param vl List of all variables
- * @return error code, or 0 if successful
- */
+ * @return error code, or 0 if successful */
 static int interface_to_vars(nip_interface_list il, nip_variable_list vl);
 
 /**
  * Debugging code for printing parsed model parameters
- */
+ * @param pl List of potentials and related variables */
 static void print_parsed_stuff(nip_potential_list pl);
 %}
 
 
 /* BISON Declarations */
-/* These are the data types for semantic values. 
+
+/**
+ * These are the data types for semantic values. 
  * NOTE: there could be more of these to get rid of global variables... */
 %union {
-  double numval;
-  double *doublearray;
-  char *name;
-  char **stringarray;
-  nip_variable var;
+  double numval;       ///< numeric values
+  double *doublearray; ///< arrays of data
+  char *name;          ///< names
+  char **stringarray;  ///< arrays of names
+  nip_variable var;    ///< a random variable / graph node
   /* list of X to get rid of global variables? */
 }
 
 %{
-/* Opens an input file. Returns 0 if file was opened or if some file was
- * already open. Returns ERROR_GENERAL if an error occurred
- * opening the file.
- */
+/**
+ * Opens an input file. 
+ * @param filename The name of Hugin net file to open
+ * @return 0 if file was opened successfully or if some file was already open. 
+ * Returns non-zero error code if an error occurred opening the file. */
 FILE *open_net_file(const char *filename);
 
-/* Closes the current input file (if there is one).
- */
+/**
+ * Closes the current input file (if there is one). */
 void close_net_file();
 
-/* TODO: make only one getter by putting the stuff inside single struct */
-/* Gives you the list of variables after yylex() */
+/**
+ * Gives you the list of variables after yylex()
+ * @return list of all variables */
 nip_variable_list get_parsed_variables (void);
 
-/* Gives you the array of cliques after yylex() */
+/**
+ * Gives you the array of cliques after yylex()
+ * @param clique_array_pointer Where the array reference is written
+ * @return number of cliques in allocated array */
 int get_cliques (nip_clique** clique_array_pointer);
 
-/* Gives you the global parameters of the whole network 
- * (node size is the only mandatory field...) */
+/**
+ * Gives you the global parameters of the whole network 
+ * (node size is the only mandatory field in Hugin net, TODO: others)
+ * @param x Where horizontal size is written
+ * @param y Where vertical size is written */
 void get_parsed_node_size(int* x, int* y);
 %}
 
@@ -185,7 +200,7 @@ void get_parsed_node_size(int* x, int* y);
 
 %%
 input:  nodes potentials {
-  int nip_parser_error = parsed_vars_to_graph(nip_parsed_vars, nip_Graph);
+  int nip_parser_error = parsed_vars_to_graph(nip_parsed_vars, nip_parsed_graph);
   if(nip_parser_error != 0){
     nip_report_error(__FILE__, __LINE__, nip_parser_error, 1);
     YYABORT;
@@ -199,9 +214,9 @@ input:  nodes potentials {
   }
   nip_free_interface_list(nip_interface_relations);
 
-  nip_n_cliques = nip_graph_to_cliques(nip_Graph, &nip_cliques);
-  nip_free_graph(nip_Graph); /* Get rid of the graph (?) */
-  nip_Graph = NULL;
+  nip_n_cliques = nip_graph_to_cliques(nip_parsed_graph, &nip_cliques);
+  nip_free_graph(nip_parsed_graph); /* Get rid of the graph (?) */
+  nip_parsed_graph = NULL;
   if(nip_n_cliques < 0){
     nip_report_error(__FILE__, __LINE__, EINVAL, 1);
     YYABORT;
@@ -221,7 +236,7 @@ input:  nodes potentials {
 
 /* optional net block */
 |  netDeclaration nodes potentials {
-  int nip_parser_error = parsed_vars_to_graph(nip_parsed_vars, nip_Graph);
+  int nip_parser_error = parsed_vars_to_graph(nip_parsed_vars, nip_parsed_graph);
   if(nip_parser_error != 0){
     nip_report_error(__FILE__, __LINE__, nip_parser_error, 1);
     YYABORT;
@@ -235,9 +250,9 @@ input:  nodes potentials {
   }
   nip_free_interface_list(nip_interface_relations);
 
-  nip_n_cliques = nip_graph_to_cliques(nip_Graph, &nip_cliques);
-  nip_free_graph(nip_Graph); /* Get rid of the graph (?) */
-  nip_Graph = NULL;
+  nip_n_cliques = nip_graph_to_cliques(nip_parsed_graph, &nip_cliques);
+  nip_free_graph(nip_parsed_graph); /* Get rid of the graph (?) */
+  nip_parsed_graph = NULL;
   if(nip_n_cliques < 0){
     nip_report_error(__FILE__, __LINE__, EINVAL, 1);
     YYABORT;
@@ -258,7 +273,7 @@ input:  nodes potentials {
 /* possible old class statement */
 | token_class UNQUOTED_STRING '{' parameters nodes potentials '}' {
   free($2); /* the classname is useless */
-  int nip_parser_error = parsed_vars_to_graph(nip_parsed_vars, nip_Graph);
+  int nip_parser_error = parsed_vars_to_graph(nip_parsed_vars, nip_parsed_graph);
   if(nip_parser_error != 0){
     nip_report_error(__FILE__, __LINE__, nip_parser_error, 1);
     YYABORT;
@@ -272,9 +287,9 @@ input:  nodes potentials {
   }
   nip_free_interface_list(nip_interface_relations);
 
-  nip_n_cliques = nip_graph_to_cliques(nip_Graph, &nip_cliques);
-  nip_free_graph(nip_Graph); /* Get rid of the graph (?) */
-  nip_Graph = NULL;
+  nip_n_cliques = nip_graph_to_cliques(nip_parsed_graph, &nip_cliques);
+  nip_free_graph(nip_parsed_graph); /* Get rid of the graph (?) */
+  nip_parsed_graph = NULL;
   if(nip_n_cliques < 0){
     nip_report_error(__FILE__, __LINE__, EINVAL, 1);
     YYABORT;
@@ -293,7 +308,7 @@ input:  nodes potentials {
 };
 
 
-nodes:    /* empty */ { nip_Graph = nip_new_graph(nip_parsed_vars->length); }
+nodes:    /* empty */ { nip_parsed_graph = nip_new_graph(nip_parsed_vars->length); }
 |         nodeDeclaration nodes {/* a variable added */}
 ;
 
